@@ -26,7 +26,7 @@ class Request
      * @var array
      */
     protected static $headers = array(
-        'Razorpay-API'  =>  1    
+        'Razorpay-API'  =>  1
     );
 
     /**
@@ -51,10 +51,10 @@ class Request
             'hook' => $hooks,
             'timeout' => 60
         );
-        
+
         $headers = $this->getRequestHeaders();
 
-        $response = Requests::request($url, $headers, $data, $method, $options);  
+        $response = Requests::request($url, $headers, $data, $method, $options);
         $this->checkErrors($response);
 
         return json_decode($response->body, true);
@@ -157,9 +157,9 @@ class Request
     {
         $uaHeader = array(
             'User-Agent' => $this->constructUa()
-            
+
         );
-        
+
         $headers = array_merge(self::$headers, $uaHeader);
 
         return $headers;

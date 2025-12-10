@@ -5,9 +5,10 @@
             <h4 class="mb-1 text-xs font-bold tracking-wider text-blue-100 uppercase">Current Syllabus</h4>
             <div class="flex items-center justify-between">
                 <span class="pr-2 text-sm font-bold text-white truncate">
-                    {{ session('currentCategory') ? session('currentCategory')->name : __('No Syllabus Selected') }}
+                    {{ request()->cookie('category_name') ?? __('No Syllabus Selected') }}
                 </span>
-                <a href="{{ route('change_syllabus') }}" class="px-2 py-1 text-xs text-white transition bg-blue-600 rounded hover:bg-blue-500">
+                <a href="{{ route('change_syllabus') }}"
+                    class="px-2 py-1 text-xs text-white transition bg-blue-600 rounded hover:bg-blue-500">
                     Change
                 </a>
             </div>
@@ -24,22 +25,21 @@
     @endphp
 
     @foreach($navLinks as $link)
-        <a href="{{ route($link['route']) }}"
-           class="group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out
-           {{ request()->routeIs($link['route'])
-              ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
-              : 'text-blue-100 hover:bg-white/10 hover:text-white' }}">
+        <a href="{{ route($link['route']) }}" class="group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out
+               {{ request()->routeIs($link['route'])
+            ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
+            : 'text-blue-100 hover:bg-white/10 hover:text-white' }}">
 
-           <svg class="mr-3 h-5 w-5 flex-shrink-0 {{ request()->routeIs($link['route']) ? 'text-white' : 'text-blue-300 group-hover:text-white' }}"
+            <svg class="mr-3 h-5 w-5 flex-shrink-0 {{ request()->routeIs($link['route']) ? 'text-white' : 'text-blue-300 group-hover:text-white' }}"
                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $link['icon'] }}"/>
-           </svg>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $link['icon'] }}" />
+            </svg>
 
-           {{ __($link['name']) }}
+            {{ __($link['name']) }}
 
-           @if(request()->routeIs($link['route']))
+            @if(request()->routeIs($link['route']))
                 <span class="ml-auto w-1.5 h-1.5 bg-white rounded-full"></span>
-           @endif
+            @endif
         </a>
     @endforeach
 

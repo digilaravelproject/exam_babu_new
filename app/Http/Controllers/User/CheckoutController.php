@@ -55,10 +55,10 @@ class CheckoutController extends Controller
     public function checkout(Request $request, $plan)
     {
         $plan = Plan::with('category:id,name')->where('code', '=', $plan)->firstOrFail();
-        
+
         // Calculate order summary first
         $orderSummary = $this->repository->orderSummary($plan);
-        
+
         // Immediately handle free plans
         if ($orderSummary['total'] <= 0) {
             $paymentId = 'free_'.Str::random(16);
