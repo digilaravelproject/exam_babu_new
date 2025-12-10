@@ -24,17 +24,15 @@ class ExamDashboardController extends Controller
         $this->localizationSettings = $localizationSettings;
     }
 
-    /**
+   /**
      * User's Exam Dashboard
-     *
-     * @return \Inertia\Response
      */
     public function exam()
     {
         $userGroups = auth()->user()->userGroups()->pluck('id');
         $category = auth()->user()->selectedSyllabus();
 
-        // Fetch exams scheduled for current user via user groups
+        // Fetch exams scheduled for current user
         $schedules = ExamSchedule::whereHas('userGroups', function (Builder $query) use ($userGroups) {
             $query->whereIn('user_group_id', $userGroups);
         })->whereHas('exam', function (Builder $query) use ($category) {
@@ -43,25 +41,34 @@ class ExamDashboardController extends Controller
             $builder->with(['subCategory:id,name', 'examType:id,name']);
         }])->orderBy('end_date', 'asc')->active()->limit(4)->get();
 
-        // Fetch public exams by exam type
+        // Fetch public exams types
         $examTypes = ExamType::active()->orderBy('name')->get();
 
-        return Inertia::render('User/ExamDashboard', [
+        return view('user.exam_dashboard', [
             'examSchedules' => fractal($schedules, new ExamScheduleCardTransformer())->toArray()['data'],
             'examTypes' => fractal($examTypes, new ExamTypeTransformer())->toArray()['data'],
             'subscription' => request()->user()->hasActiveSubscription($category->id, 'exams')
         ]);
     }
 
-    /**
-     * Live Exams Screen
-     *
-     * @return \Inertia\Response
+   /**
+     * Live Exams Screen (Combined Logic)
      */
     public function liveExams()
     {
+        $userGroups = auth()->user()->userGroups()->pluck('id');
         $category = auth()->user()->selectedSyllabus();
-        return Inertia::render('User/LiveExams', [
+
+        $schedules = ExamSchedule::whereHas('userGroups', function (Builder $query) use ($userGroups) {
+            $query->whereIn('user_group_id', $userGroups);
+        })->whereHas('exam', function (Builder $query) use ($category) {
+            $query->where('sub_category_id', '=', $category->id);
+        })->with(['exam' => function($builder) {
+            $builder->with(['subCategory:id,name', 'examType:id,name']);
+        }])->orderBy('end_date', 'asc')->active()->paginate(12); // Pagination added
+
+        return view('user.live_exams', [
+            'schedules' => $schedules, // Passing Paginator directly
             'subscription' => request()->user()->hasActiveSubscription($category->id, 'exams')
         ]);
     }
@@ -90,17 +97,24 @@ class ExamDashboardController extends Controller
         ], 200);
     }
 
-    /**
-     * Get Exams by type page
-     *
-     * @param ExamType $type
-     * @return \Inertia\Response
+  /**
+     * Get Exams by type page (Combined Logic)
      */
     public function examsByType(ExamType $type)
     {
+        $subCategory = auth()->user()->selectedSyllabus();
         $category = auth()->user()->selectedSyllabus();
-        return Inertia::render('User/ExamsByType', [
+
+        $exams = $type->exams()->has('questions')
+            ->where('sub_category_id', '=', $subCategory->id)
+            ->orderBy('exams.is_paid', 'asc')
+            ->with(['subCategory:id,name', 'examType:id,name'])
+            ->isPublic()->published()
+            ->paginate(12); // Pagination added
+
+        return view('user.exams_by_type', [
             'type' => $type,
+            'exams' => $exams, // Passing Paginator directly
             'subscription' => request()->user()->hasActiveSubscription($category->id, 'exams')
         ]);
     }

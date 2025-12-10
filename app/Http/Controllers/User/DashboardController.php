@@ -1,4 +1,5 @@
 <?php
+
 /**
  * File name: DashboardController.php
  * Last modified: 18/07/21, 3:59 PM
@@ -39,8 +40,8 @@ class DashboardController extends Controller
 
     /**
      * User's Main Dashboard
+     * @return \Illuminate\Contracts\View\View
      *
-     * @return \Inertia\Response
      */
     public function index()
     {
@@ -64,7 +65,7 @@ class DashboardController extends Controller
         })->with('exam')->orderBy('end_date', 'asc')->active()->limit(4)->get();
 
         // Fetch current user in-completed practice sessions
-        $practiceSessions = PracticeSession::with(['practiceSet' => function($query) {
+        $practiceSessions = PracticeSession::with(['practiceSet' => function ($query) {
             $query->with('skill:id,name');
         }])->whereHas('practiceSet', function (Builder $query) use ($subCategory) {
             $query->where('sub_category_id', $subCategory->id);
@@ -72,43 +73,64 @@ class DashboardController extends Controller
             ->orderBy('updated_at', 'desc')->limit(1)->get();
 
         // Fetch all active subscriptions for the user
-        $userSubscriptions = Subscription::with(['plan' => function($query) {
-                $query->with('features:id,code,name');
-            }])
+        $userSubscriptions = Subscription::with(['plan' => function ($query) {
+            $query->with('features:id,code,name');
+        }])
             ->where('user_id', auth()->user()->id)
             ->where('status', 'active')
             ->where('ends_at', '>', now()->toDateTimeString())
             ->orderBy('ends_at', 'desc')
             ->get();
 
-        return Inertia::render('User/Dashboard', [
-            'scheduleCalendar' => array_merge(fractal($quizSchedules, new QuizScheduleCalendarTransformer())->toArray()['data'],
-                fractal($examSchedules, new ExamScheduleCalendarTransformer())->toArray()['data']),
+        // return Inertia::render('User/Dashboard', [
+        //     'scheduleCalendar' => array_merge(fractal($quizSchedules, new QuizScheduleCalendarTransformer())->toArray()['data'],
+        //         fractal($examSchedules, new ExamScheduleCalendarTransformer())->toArray()['data']),
+        //     'practiceSessions' => fractal($practiceSessions, new PracticeSessionCardTransformer())->toArray()['data'],
+        //     'userSubscriptions' => fractal($userSubscriptions, new UserSubscriptionTransformer())->toArray()['data'],
+        //     'minDate' => $minDate,
+        //     'maxDate' => $maxDate,
+        // ]);
+        return view('user.dashboard', [
+            'scheduleCalendar' => array_merge(
+                fractal($quizSchedules, new QuizScheduleCalendarTransformer())->toArray()['data'],
+                fractal($examSchedules, new ExamScheduleCalendarTransformer())->toArray()['data']
+            ),
             'practiceSessions' => fractal($practiceSessions, new PracticeSessionCardTransformer())->toArray()['data'],
             'userSubscriptions' => fractal($userSubscriptions, new UserSubscriptionTransformer())->toArray()['data'],
             'minDate' => $minDate,
             'maxDate' => $maxDate,
         ]);
     }
-    
+
     /**
      * Add Exams page - Shows all categories
      *
      * @param CategorySettings $categorySettings
-     * @return \Inertia\Response
+     * @return \Illuminate\Contracts\View\View
      */
     public function addExams(CategorySettings $categorySettings)
     {
         // Load only parent categories (unique), but eager-load active subcategories
         $categories = Category::with(['subCategories' => function ($query) {
-                $query->where('is_active', true);
-            }])
+            $query->where('is_active', true);
+        }])
             ->where('is_active', true)
             ->orderBy('name', 'asc')
             ->limit($categorySettings->limit ?? 50)
             ->get();
 
-        return Inertia::render('User/AddExams', [
+        // return Inertia::render('User/AddExams', [
+        //     'category' => $categorySettings->toArray(),
+        //     'categories' => $categories->map(function ($category) {
+        //         return [
+        //             'id' => $category->id,
+        //             'name' => $category->name,
+        //             'slug' => $category->slug,
+        //             'short_description' => $category->short_description,
+        //         ];
+        //     }),
+        // ]);
+        return view('user.add_exams', [
             'category' => $categorySettings->toArray(),
             'categories' => $categories->map(function ($category) {
                 return [

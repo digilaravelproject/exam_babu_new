@@ -18,19 +18,7 @@
         <link rel="stylesheet" href="{{ asset('vendor/primeicons/primeicons.css') }}">
         <link rel="stylesheet" href="{{ asset('vendor/nprogress/nprogress.css') }}">
         <link rel="stylesheet" href="{{ asset('vendor/katex/katex.min.css') }}">
-<script src="https://cdn.tailwindcss.com"></script>
-        <script>
-            tailwind.config = {
-                theme: {
-                    extend: {
-                        colors: {
-                            primary: 'var(--primary-color)',
-                            secondary: 'var(--secondary-color)',
-                        }
-                    }
-                }
-            }
-        </script>
+
 
         <link rel="stylesheet" href="{{ asset('css/app.css') }}">
         <style>

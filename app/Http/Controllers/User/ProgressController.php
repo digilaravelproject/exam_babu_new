@@ -1,10 +1,4 @@
 <?php
-/**
- * File name: ProgressController.php
- * Last modified: 18/07/21, 12:07 PM
- * Author: NearCraft - https://codecanyon.net/user/nearcraft
- * Copyright (c) 2021
- */
 
 namespace App\Http\Controllers\User;
 
@@ -14,16 +8,10 @@ use App\Models\PracticeSession;
 use App\Models\QuizSession;
 use App\Repositories\UserRepository;
 use App\Transformers\Platform\QuizSessionCardTransformer;
-use App\Transformers\Platform\UserExamSessionTransformer;
-use App\Transformers\Platform\UserPracticeSessionTransformer;
-use App\Transformers\Platform\UserQuizSessionTransformer;
-use Inertia\Inertia;
+use Illuminate\Http\Request;
 
 class ProgressController extends Controller
 {
-    /**
-     * @var UserRepository
-     */
     private UserRepository $repository;
 
     public function __construct(UserRepository $repository)
@@ -33,74 +21,82 @@ class ProgressController extends Controller
     }
 
     /**
-     * User My Progress Screen
-     *
-     * @return \Inertia\Response
+     * Helper function to get Navigation Steps manually
+     * This fixes the "Undefined array key" error
+     */
+    private function getSteps()
+    {
+        return [
+            ['name' => 'my_progress', 'label' => 'My Progress'],
+            ['name' => 'my_quizzes', 'label' => 'My Quizzes'],
+            ['name' => 'my_exams',    'label' => 'My Exams'],
+            ['name' => 'my_practice', 'label' => 'My Practice'],
+        ];
+    }
+
+    /**
+     * User My Progress Screen (Pending Sessions)
      */
     public function myProgress()
     {
-        // Fetch current user in-completed practice sessions
         $quizSessions = QuizSession::with(['quiz' => function($query) {
             $query->with('quizType:id,name');
         }, 'quizSchedule'])->where('user_id', auth()->user()->id)->pending()->get();
 
-        return Inertia::render('User/MyProgress', [
-            'steps' => $this->repository->getProgressNavigatorLinks('my_progress'),
+        return view('user.progress.index', [
+            'steps' => $this->getSteps(), // Fixed here
             'quizSessions' => fractal($quizSessions, new QuizSessionCardTransformer())->toArray()['data']
         ]);
     }
 
     /**
-     * User My Quizzes Screen
-     *
-     * @return \Inertia\Response
+     * User My Quizzes Screen (History)
      */
     public function myQuizzes()
     {
         $sessions = QuizSession::with('quiz:id,slug,title')
             ->where('user_id', auth()->user()->id)
             ->where('status', '=', 'completed')
-            ->paginate(request()->perPage != null ? request()->perPage : 10);
+            ->orderBy('completed_at', 'desc')
+            ->paginate(10);
 
-        return Inertia::render('User/MyQuizzes', [
-            'steps' => $this->repository->getProgressNavigatorLinks('my_quizzes'),
-            'quizSessions' => fractal($sessions, new UserQuizSessionTransformer())->toArray(),
+        return view('user.progress.quizzes', [
+            'steps' => $this->getSteps(), // Fixed here
+            'sessions' => $sessions,
         ]);
     }
 
     /**
-     * User My Exams Screen
-     *
-     * @return \Inertia\Response
+     * User My Exams Screen (History)
      */
     public function myExams()
     {
         $sessions = ExamSession::with('exam:id,slug,title')
             ->where('user_id', auth()->user()->id)
             ->where('status', '=', 'completed')
-            ->paginate(request()->perPage != null ? request()->perPage : 10);
+            ->orderBy('completed_at', 'desc')
+            ->paginate(10);
 
-        return Inertia::render('User/MyExams', [
-            'steps' => $this->repository->getProgressNavigatorLinks('my_exams'),
-            'examSessions' => fractal($sessions, new UserExamSessionTransformer())->toArray(),
+        return view('user.progress.exams', [
+            'steps' => $this->getSteps(), // Fixed here
+            'sessions' => $sessions,
         ]);
     }
 
     /**
-     * User My Practice Screen
-     *
-     * @return \Inertia\Response
+     * User My Practice Screen (History)
      */
     public function myPractice()
     {
         $sessions = PracticeSession::with('practiceSet:id,slug,title')
             ->where('user_id', auth()->user()->id)
             ->where('status', '=', 'completed')
-            ->paginate(request()->perPage != null ? request()->perPage : 10);
+            ->orderBy('completed_at', 'desc')
+            ->paginate(10);
 
-        return Inertia::render('User/MyPractice', [
-            'steps' => $this->repository->getProgressNavigatorLinks('my_practice'),
-            'practiceSessions' => fractal($sessions, new UserPracticeSessionTransformer())->toArray(),
+        return view('user.progress.practice', [
+            'steps' => $this->getSteps(), // Fixed here
+            'sessions' => $sessions,
         ]);
     }
 }
