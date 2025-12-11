@@ -46,6 +46,7 @@ use App\Http\Controllers\Admin\ExamQuestionController;
 use App\Http\Controllers\Admin\ExamScheduleCrudController;
 use App\Http\Controllers\Admin\ExamAnalyticsController;
 use App\Http\Controllers\Admin\UserImportController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -295,8 +296,8 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('admin')->group(function
     Route::get('/file-manager', [FileController::class, 'index'])->name('file-manager');
     Route::get('file-manager/ckeditor', [FileController::class, 'ckeditor'])->name('file-ckeditor');
     Route::get('file-manager/fm-button', [FileController::class, 'button'])->name('file-button');
-    
-Route::get('/topics-ref', [\App\Http\Controllers\Admin\TopicCrudController::class, 'simpleList'])->name('topics-ref'); 
+
+Route::get('/topics-ref', [\App\Http\Controllers\Admin\TopicCrudController::class, 'simpleList'])->name('topics-ref');
 });
 
 

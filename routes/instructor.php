@@ -5,7 +5,7 @@
  * Author: NearCraft - https://codecanyon.net/user/nearcraft
  * Copyright (c) 2021
  */
-
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Instructor\DashboardController;
 
 Route::middleware(['auth:sanctum', 'verified'])->prefix('instructor')->group(function () {
