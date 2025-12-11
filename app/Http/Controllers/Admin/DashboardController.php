@@ -51,7 +51,7 @@ class DashboardController extends Controller
                 'count' => PracticeSet::published()->count()
             ]
         ];
-        return Inertia::render('Admin/Dashboard', [
+        return view('admin.Dashboard', [
             'stats' => $stats
         ]);
     }
