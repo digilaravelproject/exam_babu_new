@@ -7,17 +7,20 @@ use App\Models\SubCategory;
 use App\Transformers\Platform\SubCategoryCardTransformer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
-use Inertia\Inertia;
 
 class SyllabusController extends Controller
 {
     public function changeSyllabus()
     {
-        return Inertia::render('User/ChangeSyllabus', [
-            'categories' => fractal(SubCategory::active()->has('sections')
-                ->with(['sections:id,name,code,slug', 'subCategoryType:id,name', 'category:id,name'])
-                ->orderBy('name')->get(), new SubCategoryCardTransformer())
-                ->toArray()['data']
+        // Data fetch wahi rahega, bas return type change hoga
+        $categories = SubCategory::active()->has('sections')
+            ->with(['sections:id,name,code,slug', 'subCategoryType:id,name', 'category:id,name'])
+            ->orderBy('name')
+            ->get();
+
+        // Hum fractal() use karke array pass kar rahe hain
+        return view('user.change_syllabus', [
+            'categories' => fractal($categories, new SubCategoryCardTransformer())->toArray()['data']
         ]);
     }
 
@@ -25,9 +28,11 @@ class SyllabusController extends Controller
     {
         $category = SubCategory::where('code', $request->category)->firstOrFail();
 
+        // Cookies set karna (Pure PHP Style)
         Cookie::queue('category_id', $category->id, 60*24*7);
         Cookie::queue('category_name', $category->name, 60*24*7);
 
-        return redirect()->route('user_dashboard')->with('successMessage', 'Syllabus updated to '.$category->name);
+        return redirect()->route('user_dashboard')
+            ->with('success', 'Syllabus updated to ' . $category->name);
     }
 }
